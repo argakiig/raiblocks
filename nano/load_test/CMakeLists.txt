@@ -10,4 +10,5 @@ target_link_libraries(
   Boost::coroutine)
 
 target_compile_definitions(
-  load_test PRIVATE -DBOOST_PROCESS_SUPPORTED=${BOOST_PROCESS_SUPPORTED})
+  load_test PRIVATE -DBOOST_PROCESS_SUPPORTED=${BOOST_PROCESS_SUPPORTED}
+                    DEPENDS nano_node nano_rpc)

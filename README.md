@@ -8,6 +8,7 @@
 [![Beta Artifacts](https://github.com/nanocurrency/nano-node/workflows/Beta/badge.svg)](https://github.com/nanocurrency/nano-node/actions?query=workflow%3ABeta)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/nanocurrency/nano-node)](https://github.com/nanocurrency/nano-node/releases/latest)
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/nanocurrency/nano-node?color=darkblue&label=beta)](https://github.com/nanocurrency/nano-node/tags)
+[![Coverage Status](https://coveralls.io/repos/github/nanocurrency/nano-node/badge.svg?branch=develop)](https://coveralls.io/github/nanocurrency/nano-node?branch=develop)
 [![Tests](https://github.com/nanocurrency/nano-node/workflows/Tests/badge.svg)](https://github.com/nanocurrency/nano-node/actions?query=workflow%3ATests)
 [![RelWithDebug Tests](https://github.com/nanocurrency/nano-node/workflows/Release%20Tests/badge.svg)](https://github.com/nanocurrency/nano-node/actions?query=workflow%3A%22Release+Tests%22)
 [![Discord](https://img.shields.io/badge/discord-join%20chat-orange.svg)](https://chat.nano.org)
