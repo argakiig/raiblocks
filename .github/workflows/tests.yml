@@ -29,7 +29,7 @@ jobs:
       - name: Run Tests lmdb
         if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
         run: cd build && sudo cmake --build . --target run_tests -k
-      - name: Run Tests RocksDB
+      - name: Run Tests rocksdb
         if: ${{ matrix.TEST_USE_ROCKSDB == 1 }}
         env:
           DEADLINE_SCALE_FACTOR: 2
@@ -82,10 +82,10 @@ jobs:
         run: ci/actions/windows/disable_windows_defender.ps1
       - name: Fetch Deps
         run: ci/actions/windows/install_deps.ps1
-      - name: Run Tests LMDB
+      - name: Run Tests lmdb
         if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
         run: ci/actions/windows/build.ps1
-      - name: Run Tests Rocksdb
+      - name: Run Tests rocksdb
         if: ${{ matrix.TEST_USE_ROCKSDB == 1 }}
         env:
           DEADLINE_SCALE_FACTOR: 2
