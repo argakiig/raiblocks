@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        TEST_USE_ROCKSDB: [0,1]
+        TEST_USE_ROCKSDB: [0, 1]
     runs-on: macos-latest
     env:
       BOOST_ROOT: /tmp/boost
@@ -41,10 +41,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        TEST_USE_ROCKSDB: [0,1]
-        COMPILER: [gcc,clang-6]
+        TEST_USE_ROCKSDB: [0, 1]
+        COMPILER: [gcc, clang-6]
     runs-on: ubuntu-18.04
-    env: 
+    env:
       COMPILER: ${{ matrix.COMPILER }}
       TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
@@ -69,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        TEST_USE_ROCKSDB: [0,1]
+        TEST_USE_ROCKSDB: [0, 1]
     runs-on: windows-latest
     env:
       TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
@@ -86,8 +86,7 @@ jobs:
         if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
         run: ci/actions/windows/build.ps1
       - name: Run Tests Rocksdb
-        if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
+        if: ${{ matrix.TEST_USE_ROCKSDB == 1 }}
         env:
           DEADLINE_SCALE_FACTOR: 2
         run: ci/actions/windows/build.ps1
-          
