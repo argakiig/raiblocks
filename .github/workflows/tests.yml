@@ -13,6 +13,9 @@ jobs:
       fail-fast: false
       matrix:
         TEST_USE_ROCKSDB: [0, 1]
+    env:
+      BOOST_ROOT: /tmp/boost
+      TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
     runs-on: macos-latest
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
@@ -22,22 +25,15 @@ jobs:
       - name: Fetch Deps
         run: TEST=1 ci/actions/osx/install_deps.sh
       - name: Build Tests
-        env:
-          BOOST_ROOT: /tmp/boost
-          TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
         run: ci/build-travis.sh "/tmp/qt/lib/cmake/Qt5";
       - name: Run Tests lmdb
         if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
-        env:
-          BOOST_ROOT: /tmp/boost
-        run: cd build && sudo cmake --build . --target run_tests -k
+        run: cd build && sudo TEST_USE_ROCKSDB=$TEST_USE_ROCKSDB cmake --build . --target run_tests -k
       - name: Run Tests rocksdb
         env:
-          BOOST_ROOT: /tmp/boost
-          TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
           DEADLINE_SCALE_FACTOR: 2
         if: ${{ matrix.TEST_USE_ROCKSDB == 1 }}
-        run: cd build && sudo cmake --build . --target run_tests -k
+        run: cd build && sudo TEST_USE_ROCKSDB=$TEST_USE_ROCKSDB cmake --build . --target run_tests -k
 
   linux_test:
     name: Linux Unit Tests [TEST_USE_ROCKSDB=${{ matrix.TEST_USE_ROCKSDB }} - COMPILER=${{ matrix.COMPILER }}]
