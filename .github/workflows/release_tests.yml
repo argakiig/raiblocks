@@ -17,9 +17,6 @@ jobs:
       matrix:
         TEST_USE_ROCKSDB: [0, 1]
     runs-on: macos-latest
-    env:
-      BOOST_ROOT: /tmp/boost
-      TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@5a4ac90
@@ -31,10 +28,14 @@ jobs:
         run: ci/build-travis.sh "/tmp/qt/lib/cmake/Qt5";
       - name: Run Tests lmdb
         if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
+        env:
+          BOOST_ROOT: /tmp/boost
         run: cd build && sudo cmake --build . --target run_tests -k
       - name: Run Tests rocksdb
         if: ${{ matrix.TEST_USE_ROCKSDB == 1 }}
         env:
+          BOOST_ROOT: /tmp/boost
+          TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
           DEADLINE_SCALE_FACTOR: 2
         run: cd build && sudo cmake --build . --target run_tests -k
 
@@ -86,7 +87,8 @@ jobs:
         if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
         run: ci/actions/windows/build.ps1
       - name: Run Tests rocksdb
-        if: ${{ matrix.TEST_USE_ROCKSDB == 1 }}
         env:
+          TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
           DEADLINE_SCALE_FACTOR: 2
+        if: ${{ matrix.TEST_USE_ROCKSDB == 1 }}
         run: ci/actions/windows/build.ps1
