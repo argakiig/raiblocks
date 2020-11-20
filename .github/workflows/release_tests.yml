@@ -15,12 +15,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        TEST_USE_ROCKSDB:
-          - 1
-          - 0
+        TEST_USE_ROCKSDB: [0,1]
     runs-on: macos-latest
     env:
       BOOST_ROOT: /tmp/boost
+      TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@5a4ac90
         with:
@@ -28,12 +28,14 @@ jobs:
       - name: Fetch Deps
         run: TEST=1 ci/actions/osx/install_deps.sh
       - name: Build Tests
-        env:
-          TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
         run: ci/build-travis.sh "/tmp/qt/lib/cmake/Qt5";
-      - name: Run Tests
+      - name: Run Tests lmdb
+        if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
+        run: cd build && sudo cmake --build . --target run_tests -k
+      - name: Run Tests RocksDB
+        if: ${{ matrix.TEST_USE_ROCKSDB == 1 }}
         env:
-          TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
+          DEADLINE_SCALE_FACTOR: 2
         run: cd build && sudo cmake --build . --target run_tests -k
 
   gcc_test:
@@ -42,27 +44,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        TEST_USE_ROCKSDB:
-          - 0
-          - 1
-        COMPILER:
-          - gcc
-          - clang-6
+        TEST_USE_ROCKSDB: [0,1]
+        COMPILER: [gcc,clang-6]
     runs-on: ubuntu-18.04
+    env: 
+      COMPILER: ${{ matrix.COMPILER }}
+      TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@5a4ac90
         with:
           submodules: "recursive"
       - name: Fetch Deps
-        env:
-          COMPILER: ${{ matrix.COMPILER }}
         run: ci/actions/linux/install_deps.sh
       - name: Build Tests
-        env:
-          TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
         run: docker run -e RELEASE -e TEST_USE_ROCKSDB -v ${PWD}:/workspace nanocurrency/nano-env:${{ matrix.COMPILER }} /bin/bash -c "cd /workspace && ./ci/build-travis.sh /usr/lib/x86_64-linux-gnu/cmake/Qt5"
-      - name: Run Tests
-        run: docker run -e RELEASE -e TEST_USE_ROCKSDB -v ${PWD}:/workspace nanocurrency/nano-env:${{ matrix.COMPILER }} /bin/bash -c "cd /workspace/build && cmake --build . --target run_tests"
+      - name: Run Tests lmdb
+        if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
+        run: docker run -e RELEASE -v ${PWD}:/workspace nanocurrency/nano-env:${{ matrix.COMPILER }} /bin/bash -c "cd /workspace/build && cmake --build . --target run_tests"
+      - name: Run Tests rocksdb
+        if: ${{ matrix.TEST_USE_ROCKSDB == 1 }}
+        run: docker run -e RELEASE -e TEST_USE_ROCKSDB -e DEADLINE_SCALE_FACTOR=2 -v ${PWD}:/workspace nanocurrency/nano-env:${{ matrix.COMPILER }} /bin/bash -c "cd /workspace/build && cmake --build . --target run_tests"
 
   windows_test:
     name: Windows Unit Tests [TEST_USE_ROCKSDB=${{ matrix.TEST_USE_ROCKSDB }} - RELEASE=1]
@@ -70,17 +72,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        TEST_USE_ROCKSDB:
-          - 0
-          - 1
+        TEST_USE_ROCKSDB: [0,1]
     runs-on: windows-latest
+    env:
+      TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
     steps:
       - uses: actions/checkout@5a4ac90
         with:
           submodules: "recursive"
       - name: Fetch Deps
         run: ci/actions/windows/install_deps.ps1
-      - name: Run Tests
+      - name: Run Tests LMDB
+        if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
+        run: ci/actions/windows/build.ps1
+      - name: Run Tests Rocksdb
+        if: ${{ matrix.TEST_USE_ROCKSDB == 0 }}
         env:
-          TEST_USE_ROCKSDB: ${{ matrix.TEST_USE_ROCKSDB }}
+          DEADLINE_SCALE_FACTOR: 2
         run: ci/actions/windows/build.ps1
