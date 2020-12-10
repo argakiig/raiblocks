@@ -2,9 +2,9 @@
 
 build_dir=${1-${PWD}}
 if [[ ${TEST_USE_ROCKSDB-0} == 1 ]]; then
-    TIMEOUT_DEFAULT=720
+    TIMEOUT_DEFAULT=780
 else
-    TIMEOUT_DEFAULT=360
+    TIMEOUT_DEFAULT=420
 fi
 
 BUSYBOX_BASH=${BUSYBOX_BASH-0}
@@ -68,11 +68,34 @@ run_tests() {
         fi
     done
 
-    ${TIMEOUT_CMD} ${TIMEOUT_TIME_ARG} ${TIMEOUT_DEFAULT} ./rpc_test
-    rpc_test_res=${?}
+    for try in "${tries[@]}"; do
+        if [ "${try}" != '_initial_' ]; then
+            echo "rpc_test failed: ${rpc_test_res}, retrying (try=${try})"
 
-    xvfb_run_ ./qt_test
-    qt_test_res=${?}
+            # Wait a while for sockets to be all cleaned up by the kernel
+            sleep $((30 + (RANDOM % 30)))
+        fi
+
+        ${TIMEOUT_CMD} ${TIMEOUT_TIME_ARG} ${TIMEOUT_DEFAULT} ./rpc_test
+        rpc_test_res=${?}
+        if [ "${rpc_test_res}" = '0' ]; then
+            break
+        fi
+    done
+
+    for try in "${tries[@]}"; do
+        if [ "${try}" != '_initial_' ]; then
+            echo "qt_test failed: ${qt_test_res}, retrying (try=${try})"
+
+            # Wait a while for sockets to be all cleaned up by the kernel
+            sleep $((30 + (RANDOM % 30)))
+        fi
+        xvfb_run_ ./qt_test
+        qt_test_res=${?}
+        if [ "${qt_test_res}" = '0' ]; then
+            break
+        fi
+    done
 
     ${TIMEOUT_CMD} ${TIMEOUT_TIME_ARG} ${TIMEOUT_DEFAULT} ./load_test -s 150 -n 5
     load_test_res=${?}
