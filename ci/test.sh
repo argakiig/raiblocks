@@ -15,8 +15,10 @@ fi
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     TIMEOUT_CMD=gtimeout
+    PROCESS_KILL="killall -m"
 else
     TIMEOUT_CMD=timeout
+    PROCESS_KILL="pkill -f"
 fi
 
 set -o nounset
@@ -66,6 +68,7 @@ run_tests() {
         if [ "${core_test_res}" = '0' ]; then
             break
         fi
+        "${PROCESS_KILL} core_test"
     done
 
     for try in "${tries[@]}"; do
@@ -81,6 +84,7 @@ run_tests() {
         if [ "${rpc_test_res}" = '0' ]; then
             break
         fi
+        "${PROCESS_KILL} rpc_test"
     done
 
     for try in "${tries[@]}"; do
@@ -95,21 +99,15 @@ run_tests() {
         if [ "${qt_test_res}" = '0' ]; then
             break
         fi
+        "${PROCESS_KILL} qt_test"
     done
 
-    for try in "${tries[@]}"; do
-        if [ "${try}" != '_initial_' ]; then
-            echo "qt_test failed: ${load_test_res}, retrying (try=${try})"
-
-            # Wait a while for sockets to be all cleaned up by the kernel
-            sleep $((30 + (RANDOM % 30)))
-        fi
-        ${TIMEOUT_CMD} ${TIMEOUT_TIME_ARG} ${TIMEOUT_DEFAULT} ./load_test -s 150 -n 5
-        load_test_res=${?}
-        if [ "${load_test_res}" = '0' ]; then
-            break
-        fi
-    done
+    # Load Test leaves ports open when it crashes so retries will fail due to port in use
+    ${TIMEOUT_CMD} ${TIMEOUT_TIME_ARG} ${TIMEOUT_DEFAULT} ./load_test -s 150 -n 5
+    load_test_res=${?}
+    "${PROCESS_KILL} rpc_test"
+    "${PROCESS_KILL} nano_node"
+    "${PROCESS_KILL} nano_rpc"
 
     echo "Core Test return code: ${core_test_res}"
     echo "RPC  Test return code: ${rpc_test_res}"
@@ -121,8 +119,7 @@ run_tests() {
         return ${rpc_test_res}
     elif [[ ${qt_test_res} -ne 0 ]]; then
         return ${qt_test_res}
-    elif [[ ${load_test_res} -ne 0 ]]; then
-        return ${load_test_res}
+    # Check load_test manually since it cannot restart on failure
     fi
     return 0
 }

@@ -28,7 +28,7 @@ fi
 mkdir build
 pushd build
 
-if [[ ${RELEASE-0} -eq 1 ]]; then
+if [[ "${RELEASE-0}" != 0 ]]; then
     BUILD_TYPE="RelWithDebInfo"
 fi
 
