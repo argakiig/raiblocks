@@ -15,8 +15,10 @@ fi
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     TIMEOUT_CMD=gtimeout
+    PROCESS_KILL="killall -m"
 else
     TIMEOUT_CMD=timeout
+    PROCESS_KILL="pkill -f"
 fi
 
 set -o nounset
@@ -66,6 +68,7 @@ run_tests() {
         if [ "${core_test_res}" = '0' ]; then
             break
         fi
+        "$PROCESS_KILL core_test"
     done
 
     for try in "${tries[@]}"; do
@@ -81,6 +84,7 @@ run_tests() {
         if [ "${rpc_test_res}" = '0' ]; then
             break
         fi
+        "$PROCESS_KILL rpc_test"
     done
 
     for try in "${tries[@]}"; do
@@ -95,6 +99,7 @@ run_tests() {
         if [ "${qt_test_res}" = '0' ]; then
             break
         fi
+        "$PROCESS_KILL qt_test"
     done
 
     for try in "${tries[@]}"; do
@@ -109,6 +114,9 @@ run_tests() {
         if [ "${load_test_res}" = '0' ]; then
             break
         fi
+        "$PROCESS_KILL rpc_test"
+        "$PROCESS_KILL nano_node"
+        "$PROCESS_KILL nano_rpc"
     done
 
     echo "Core Test return code: ${core_test_res}"
