@@ -97,8 +97,19 @@ run_tests() {
         fi
     done
 
-    ${TIMEOUT_CMD} ${TIMEOUT_TIME_ARG} ${TIMEOUT_DEFAULT} ./load_test -s 150 -n 5
-    load_test_res=${?}
+    for try in "${tries[@]}"; do
+        if [ "${try}" != '_initial_' ]; then
+            echo "qt_test failed: ${load_test_res}, retrying (try=${try})"
+
+            # Wait a while for sockets to be all cleaned up by the kernel
+            sleep $((30 + (RANDOM % 30)))
+        fi
+        ${TIMEOUT_CMD} ${TIMEOUT_TIME_ARG} ${TIMEOUT_DEFAULT} ./load_test -s 150 -n 5
+        load_test_res=${?}
+        if [ "${load_test_res}" = '0' ]; then
+            break
+        fi
+    done
 
     echo "Core Test return code: ${core_test_res}"
     echo "RPC  Test return code: ${rpc_test_res}"
