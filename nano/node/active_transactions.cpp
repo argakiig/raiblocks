@@ -1242,6 +1242,8 @@ void nano::active_transactions::erase (nano::qualified_root const & root_a)
 		// This is one of few places where both the active mutex and election mutexes are held
 		cleanup_election (lock, root_it->election->cleanup_info ());
 		roots.get<tag_root> ().erase (root_it);
+		lock.unlock ();
+		node.logger.try_log (boost::str (boost::format ("Election erased for root %1%") % root_a.to_string ()));
 	}
 }
 
